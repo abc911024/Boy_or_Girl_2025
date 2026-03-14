@@ -2,41 +2,51 @@
 Main script to run all agents in sequence.
 """
 
-from shared import *
+from agent.agent1_data_audit import load_data, agent1_data_audit
+from agent.agent2_data_cleaning import agent2_data_cleaning
+from agent.agent3_eda import agent3_eda
+from agent.agent4_feature_engineering import agent4_feature_engineering
+from agent.agent5_modeling import agent5_modeling
+from agent.agent6_validation import agent6_validation
+from agent.agent7_submission import agent7_submission
+
 
 def main():
-    """Run all agents."""
+    """Run all agents in sequence."""
     print("Starting Multi-Agent Data Science Team...")
 
-    # Agent 1
-    load_data()
-    agent1_data_audit()
+    # Load raw data
+    train, test, sample = load_data()
 
-    # Agent 2
-    agent2_data_cleaning()
+    # Agent 1: Data Audit
+    train, test = agent1_data_audit(train, test)
 
-    # Agent 3
-    agent3_eda()
+    # Agent 2: Data Cleaning
+    train_clean, test_clean = agent2_data_cleaning(train, test)
 
-    # Agent 4
-    agent4_feature_engineering()
+    # Agent 3: EDA
+    train_clean, insights = agent3_eda(train_clean)
 
-    # Agent 5
-    agent5_modeling()
+    # Agent 4: Feature Engineering
+    X, y, X_test, feature_info = agent4_feature_engineering(train_clean, test_clean, insights)
 
-    # Agent 6
-    agent6_validation()
+    # Agent 5: Modeling
+    best_model, model_results, best_model_name = agent5_modeling(X, y)
 
-    # Agent 7
-    agent7_submission()
+    # Agent 6: Validation
+    validation_results = agent6_validation(best_model, X, y)
 
+    # Agent 7: Submission
+    submission_path = agent7_submission(best_model, X_test, test)
     print("\n=== Final Summary ===")
-    print("A. 專案流程總覽: 資料檢查 → 清洗 → EDA → 特徵工程 → 建模 → 驗證 → 提交")
-    print("B. 各 Agent 工作結果摘要: 資料品質良好，清洗完成，發現關鍵特徵，建模使用RandomForest，驗證F1約0.92，提交檔案產生。")
-    print("C. 推薦建模方案: 使用RandomForest，準確率約0.88，可嘗試XGBoost提升。")
-    print("D. Python 實作程式碼: 分散在各agent檔案中。")
-    print("E. submission.csv 產出方式: 運行main()自動產生。")
-    print("F. 競賽完成: 提交檔案已準備好，可上傳至Kaggle。")
+    print(f"A. 專案流程總覽: 資料檢查 → 清洗 → EDA → 特徵工程 → 建模 → 驗證 → 提交")
+    print(f"B. 最佳模型: {best_model_name}")
+    print(f"C. 模型比較結果: {model_results}")
+    print(f"D. 驗證結果: {validation_results}")
+    print(f"E. 特徵資訊: {feature_info}")
+    print(f"F. 提交檔案位置: {submission_path}")
+    print("G. 競賽完成: submission.csv 已準備好，可上傳至 Kaggle。")
+
 
 if __name__ == "__main__":
     main()

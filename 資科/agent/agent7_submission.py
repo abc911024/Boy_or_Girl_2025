@@ -1,35 +1,30 @@
 """
-Agent 7: Submission - Generate submission file.
+Agent 7: Submission - Generate final prediction file.
 """
 
 import pandas as pd
 
-def agent7_submission(best_model, X_test, test_clean, sample):
-    """Agent 7: Submission."""
+
+def agent7_submission(best_model, X_test, test_df, output_path="submission.csv"):
+    """Generate submission file with same number of rows as test."""
     print("=== Agent 7: Submission ===")
 
-    y_pred = best_model.predict(X_test)
-    submission = pd.DataFrame({'id': test_clean['id'], 'gender': y_pred})
-    submission.to_csv('submission.csv', index=False)
-    print("Submission saved to submission.csv")
-    print(f"Sample submission shape: {sample.shape}")
-    print(f"Our submission shape: {submission.shape}")
-    print(f"Gender distribution: {submission['gender'].value_counts()}")
+    preds = best_model.predict(X_test)
 
-    return submission
+    if len(preds) != len(test_df):
+        raise ValueError(
+            f"預測筆數 {len(preds)} 和 test 筆數 {len(test_df)} 不一致"
+        )
 
-if __name__ == "__main__":
-    from agent1_data_audit import load_data, agent1_data_audit
-    from agent2_data_cleaning import agent2_data_cleaning
-    from agent3_eda import agent3_eda
-    from agent4_feature_engineering import agent4_feature_engineering
-    from agent5_modeling import agent5_modeling
-    from agent6_validation import agent6_validation
-    train, test, sample = load_data()
-    train, test = agent1_data_audit(train, test)
-    train_clean, test_clean = agent2_data_cleaning(train, test)
-    train_clean, insights = agent3_eda(train_clean)
-    X, y, X_test = agent4_feature_engineering(train_clean, test_clean, insights)
-    best_model, model_results = agent5_modeling(X, y)
-    best_model = agent6_validation(best_model, X, y)
-    submission = agent7_submission(best_model, X_test, test_clean, sample)
+    submission = pd.DataFrame({
+        "id": test_df["id"].values,
+        "gender": preds
+    })
+
+    submission.to_csv(output_path, index=False, encoding="utf-8-sig")
+
+    print(f"Submission file saved to: {output_path}")
+    print(f"Submission shape: {submission.shape}")
+    print(submission.head())
+
+    return output_path
